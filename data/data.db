@@ -1,0 +1,38 @@
+import sqlite3
+
+# SQLite 데이터베이스 초기화
+def initialize_database():
+    conn = sqlite3.connect("kpop.db")
+    cursor = conn.cursor()
+    
+    # Artists 테이블 생성
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS artists (
+        id INTEGER PRIMARY KEY,
+        name TEXT UNIQUE,     -- 아티스트 이름
+        spotify_id TEXT,      -- Spotify ID
+        youtube_id TEXT,      -- YouTube ID
+        twitter_id TEXT,      -- Twitter ID
+        instagram_id TEXT     -- Instagram ID
+    )
+    """)
+    
+    # Metrics 테이블 생성
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS metrics (
+        id INTEGER PRIMARY KEY,
+        artist_id INTEGER,    -- 아티스트 ID (Foreign Key)
+        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        youtube_views INTEGER,
+        spotify_followers INTEGER,
+        twitter_followers INTEGER,
+        instagram_followers INTEGER,
+        FOREIGN KEY (artist_id) REFERENCES artists (id)
+    )
+    """)
+    
+    conn.commit()
+    conn.close()
+
+# 실행
+initialize_database()
