@@ -53,7 +53,33 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Run the Project
+### Database Initialization and Data Collection
+To initialize the database and fetch artist and social media data, run:
+```bash
+python main.py 
+```
+This will:
+- Initialize the SQLite database.
+- Fetch all artists and their social media data (Spotify, YouTube, Twitter, Instagram).
+- Save the data to the database.
+
+### Update Follower Counts
+To update the follower counts for all artists in the database, use:
+```bash
+python main.py update
+```
+This wil:
+- fetch the latest follower counts for Spotify artists stored in the database. 
+
+### Update YouTube Subscribers
+To update YouTube subscribers for all artists with YouTube channels, run:
+```bash
+python main.py youtube
+```
+This will:
+- Fetch the latest YouTube subscriber count for artists with valid YouTube channels.
+
+### Run the Discord BOt
 ```bash
 python bot_with_scheduler.py
 ```
@@ -147,3 +173,9 @@ Lists the top 100 artists by Spotify followers.
 Lists the top 100 artists by YouTube followers.
 
 ![Rank YouTube](./스크린샷%202024-12-11%20234112.png)
+
+---
+
+## Demo video
+[![Video Label](http://img.youtube.com/vi/'n7qgDWUe3pA'/0.jpg)](https://youtu.be/n7qgDWUe3pA)
+
