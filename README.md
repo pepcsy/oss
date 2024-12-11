@@ -177,5 +177,5 @@ Lists the top 100 artists by YouTube followers.
 ---
 
 ## Demo video
-[![Video Label](http://img.youtube.com/vi/'n7qgDWUe3pA'/0.jpg)](https://youtu.be/n7qgDWUe3pA)
+[![Video Link](http://img.youtube.com/vi/n7qgDWUe3pA/0.jpg)](https://youtu.be/n7qgDWUe3pA)
 
