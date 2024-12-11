@@ -72,3 +72,16 @@ def fetch_artists_with_min_followers(access_token, min_followers=100000, min_cou
                 break
 
     return all_artists
+
+def fetch_artist_followers(access_token, artist_id):
+    """
+    Spotify 아티스트 팔로워 수 가져오기
+    """
+    url = f"https://api.spotify.com/v1/artists/{artist_id}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        print(f"[ERROR] Failed to fetch followers for {artist_id}: {response.status_code}")
+        return None
+    data = response.json()
+    return data.get("followers", {}).get("total")

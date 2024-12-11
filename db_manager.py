@@ -7,6 +7,10 @@ def initialize_database():
     conn = sqlite3.connect("data/kpop.db")
     cursor = conn.cursor()
 
+    # 기존 데이터 삭제
+    cursor.execute("DROP TABLE IF EXISTS artists")
+    cursor.execute("DROP TABLE IF EXISTS social_media")
+
     # Artists 테이블 생성
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS artists (
@@ -29,7 +33,8 @@ def initialize_database():
         youtube TEXT,
         twitter_followers INTEGER,
         instagram_followers INTEGER,
-        youtube_followers INTEGER
+        youtube_followers INTEGER,
+        UNIQUE(twitter, instagram, youtube) -- 중복 방지
     )
     """)
     conn.commit()
@@ -50,16 +55,29 @@ def save_artist_to_db(artist):
 
 def save_social_media_to_db(social_links):
     """
-    소셜 미디어 정보를 저장하고 social_id를 반환
+    소셜 미디어 정보를 저장하고 중복된 경우 기존 ID를 반환
     """
     conn = sqlite3.connect("data/kpop.db")
     cursor = conn.cursor()
+
+    # 중복 데이터 확인
     cursor.execute("""
-    INSERT INTO social_media (twitter, instagram, youtube, twitter_followers, instagram_followers, youtube_followers)
-    VALUES (?, ?, ?, ?, ?, ?)
-    """, (social_links["twitter"], social_links["instagram"], social_links["youtube"],
-          social_links.get("twitter_followers"), social_links.get("instagram_followers"), social_links.get("youtube_followers")))
-    social_id = cursor.lastrowid
+    SELECT id FROM social_media 
+    WHERE twitter = ? AND instagram = ? AND youtube = ?
+    """, (social_links.get("twitter"), social_links.get("instagram"), social_links.get("youtube")))
+
+    result = cursor.fetchone()
+    if result:
+        social_id = result[0]
+    else:
+        # 중복이 아닐 경우 데이터 삽입
+        cursor.execute("""
+        INSERT INTO social_media (twitter, instagram, youtube, twitter_followers, instagram_followers, youtube_followers)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (social_links.get("twitter"), social_links.get("instagram"), social_links.get("youtube"),
+              social_links.get("twitter_followers"), social_links.get("instagram_followers"), social_links.get("youtube_followers")))
+        social_id = cursor.lastrowid
+
     conn.commit()
     conn.close()
     return social_id
@@ -75,5 +93,27 @@ def update_artist_social_id(artist_name, social_id):
     SET social_id = ?
     WHERE name = ?
     """, (social_id, artist_name))
+    conn.commit()
+    conn.close()
+
+def update_followers_in_db(artist_name, platform, followers):
+    """
+    데이터베이스에서 특정 아티스트의 팔로워 수 업데이트
+    """
+    conn = sqlite3.connect("data/kpop.db")
+    cursor = conn.cursor()
+    if platform == "spotify":
+        cursor.execute("""
+        UPDATE artists
+        SET followers = ?
+        WHERE name = ?
+        """, (followers, artist_name))
+    elif platform in ("youtube", "twitter", "instagram"):
+        column_name = f"{platform}_followers"
+        cursor.execute(f"""
+        UPDATE social_media
+        SET {column_name} = ?
+        WHERE id = (SELECT social_id FROM artists WHERE name = ?)
+        """, (followers, artist_name))
     conn.commit()
     conn.close()
