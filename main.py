@@ -1,6 +1,6 @@
 from spotify_api import get_spotify_token, fetch_artists_with_min_followers, fetch_artist_followers
 from db_manager import (
-    initialize_database, save_artist_to_db, save_social_media_to_db, update_artist_social_id, update_followers_in_db
+    initialize_database, save_artist_to_db, save_social_media_to_db, update_artist_social_id, update_followers_in_db, save_daily_followers
 )
 from social_links_mapper import get_social_links_from_naver, extract_username
 import sqlite3
@@ -72,16 +72,17 @@ def update_followers():
     # DB에서 아티스트 이름과 Spotify ID 불러오기
     conn = sqlite3.connect("data/kpop.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT name, spotify_id FROM artists")
+    cursor.execute("SELECT id, name, spotify_id FROM artists")
     artists = cursor.fetchall()
     conn.close()
 
     # Spotify 팔로워 업데이트
-    for name, spotify_id in artists:
+    for artist_id, name, spotify_id in artists:
         print(f"[DEBUG] Fetching followers for {name} (Spotify ID: {spotify_id})")
         followers = fetch_artist_followers(access_token, spotify_id)
         if followers is not None:
             update_followers_in_db(name, "spotify", followers)
+            save_daily_followers(artist_id, "spotify", followers)
             print(f"[INFO] {name}: Spotify followers updated to {followers}")
 
 def update_youtube_subscribers():
@@ -91,7 +92,7 @@ def update_youtube_subscribers():
     conn = sqlite3.connect("data/kpop.db")
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT a.name, sm.youtube
+        SELECT a.id, a.name, sm.youtube
         FROM artists a
         JOIN social_media sm ON a.social_id = sm.id
         WHERE sm.youtube IS NOT NULL
@@ -100,7 +101,7 @@ def update_youtube_subscribers():
     conn.close()
 
     # YouTube 구독자 수 업데이트
-    for name, youtube_url in youtube_channels:
+    for artist_id, name, youtube_url in youtube_channels:
         # YouTube ID 추출
         channel_id = extract_username(youtube_url, "youtube")
         if not channel_id:
@@ -111,6 +112,7 @@ def update_youtube_subscribers():
         subscribers = get_youtube_subscriber_count(channel_id)
         if subscribers is not None:
             update_followers_in_db(name, "youtube", subscribers)
+            save_daily_followers(artist_id, "youtube", subscribers)
             print(f"[INFO] {name}: YouTube subscribers updated to {subscribers}")
         else:
             print(f"[WARNING] No data found for YouTube channel ID: {channel_id}")
@@ -123,4 +125,3 @@ if __name__ == "__main__":
             update_youtube_subscribers()
     else:
         main()
-

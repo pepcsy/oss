@@ -10,6 +10,7 @@ def initialize_database():
     # 기존 데이터 삭제
     cursor.execute("DROP TABLE IF EXISTS artists")
     cursor.execute("DROP TABLE IF EXISTS social_media")
+    cursor.execute("DROP TABLE IF EXISTS daily_followers")
 
     # Artists 테이블 생성
     cursor.execute("""
@@ -37,6 +38,19 @@ def initialize_database():
         UNIQUE(twitter, instagram, youtube) -- 중복 방지
     )
     """)
+
+    # Daily Followers 테이블 생성
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_followers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        artist_id INTEGER,
+        platform TEXT, -- 'spotify' 또는 'youtube'
+        date DATE DEFAULT (DATE('now')),
+        followers INTEGER,
+        FOREIGN KEY (artist_id) REFERENCES artists (id)
+    )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -115,5 +129,18 @@ def update_followers_in_db(artist_name, platform, followers):
         SET {column_name} = ?
         WHERE id = (SELECT social_id FROM artists WHERE name = ?)
         """, (followers, artist_name))
+    conn.commit()
+    conn.close()
+
+def save_daily_followers(artist_id, platform, followers):
+    """
+    Daily Followers 테이블에 하루 팔로워 데이터를 저장
+    """
+    conn = sqlite3.connect("data/kpop.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO daily_followers (artist_id, platform, date, followers)
+    VALUES (?, ?, DATE('now'), ?)
+    """, (artist_id, platform, followers))
     conn.commit()
     conn.close()

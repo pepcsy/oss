@@ -1,9 +1,12 @@
-# config.py
-# spotify api key
-CLIENT_ID = "a6ddf1dcebd945969abd091984d57b0b"
-CLIENT_SECRET = "cf9db41100524c07945bef2f13eb2fde"
+from dotenv import load_dotenv
+import os
 
-GOOGLE_API_KEY = "AIzaSyCVonc2A2swv2Iai8HC1X3LNEY88MYelps"  # Google Custom Search API 키
-SEARCH_ENGINE_ID = "7754d61324bbd4d1a"  # Custom Search Engine ID
+# .env 파일 로드
+load_dotenv()
 
-YOUTUBE_API_KEY = "AIzaSyCVonc2A2swv2Iai8HC1X3LNEY88MYelps"
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+
+
